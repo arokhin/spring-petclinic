@@ -61,4 +61,10 @@ class StandardPipeline(
             snapshot(test) {}
         }
     }
+
+    fun registerIn(project: Project) {
+        project.buildType(build)
+        project.buildType(test)
+        project.buildType(deploy)
+    }
 }

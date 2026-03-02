@@ -4,19 +4,9 @@ version = "2025.11"
 
 project {
 
-    val pipeline = StandardPipeline("MyService")
+    subProject {
+        name = "Backend"
+        StandardPipeline("MyService").registerIn(this)
+    }
 
-    buildType(pipeline.build)
-    buildType(pipeline.test)
-    buildType(pipeline.deploy)
-}
-
-
-project {
-
-    val pipeline = StandardPipeline("Frontend")
-
-    buildType(pipeline.build)
-    buildType(pipeline.test)
-    buildType(pipeline.deploy)
 }
