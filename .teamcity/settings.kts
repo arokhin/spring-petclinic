@@ -6,7 +6,7 @@ project {
 
     subProject {
         name = "Backend"
-        StandardPipeline("MyService").registerIn(this)
+        StandardPipeline("Backend").registerIn(this)
     }
 
 }
