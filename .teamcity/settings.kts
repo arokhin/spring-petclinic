@@ -11,9 +11,4 @@ project {
     }
 
 
-    subProject {
-        id("Frontend_Project")
-        name = "Frontend"
-        StandardPipeline("Frontend").registerIn(this)
-    }
 }
