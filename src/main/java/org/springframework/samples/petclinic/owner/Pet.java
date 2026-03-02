@@ -54,13 +54,8 @@ public class Pet extends NamedEntity {
 
 	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
 	@JoinColumn(name = "pet_id")
- @OrderBy("date ASC")
- private Set<Visit> visits = new LinkedHashSet<>();
-
-	// Read-only back-reference to the Owner to enable navigation and filtering
-	@ManyToOne
-	@JoinColumn(name = "owner_id", insertable = false, updatable = false)
-	private Owner owner;
+	@OrderBy("visit_date ASC")
+	private Set<Visit> visits = new LinkedHashSet<>();
 
 	public void setBirthDate(LocalDate birthDate) {
 		this.birthDate = birthDate;
@@ -84,10 +79,6 @@ public class Pet extends NamedEntity {
 
 	public void addVisit(Visit visit) {
 		getVisits().add(visit);
-	}
-
-	public Owner getOwner() {
-		return this.owner;
 	}
 
 }
