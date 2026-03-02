@@ -11,3 +11,12 @@ project {
     buildType(pipeline.deploy)
 }
 
+
+project {
+
+    val pipeline = StandardPipeline("Frontend")
+
+    buildType(pipeline.build)
+    buildType(pipeline.test)
+    buildType(pipeline.deploy)
+}
