@@ -82,7 +82,7 @@ class StandardPipeline(
     }
 
     val deploy = BuildType {
-        id("${prefix}_Deploy Preproduction")
+        id("${prefix}_Deploy_Preproduction")
         name = "$prefix :: Deploy"
         type = BuildTypeSettings.Type.DEPLOYMENT
 
