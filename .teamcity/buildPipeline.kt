@@ -127,3 +127,4 @@ class StandardPipeline(
         project.buildType(deploy)
     }
 }
+
