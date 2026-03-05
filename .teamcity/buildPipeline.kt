@@ -81,9 +81,25 @@ class StandardPipeline(
         }
     }
 
+    val allTests = BuildType {
+        id("${prefix}_AllTests")
+        name = "$prefix :: Tests (All)"
+        type = BuildTypeSettings.Type.COMPOSITE
+
+        vcs {
+            root(DslContext.settingsRoot)
+        }
+
+        dependencies {
+            snapshot(testUnit) {}
+            snapshot(testIntegration) {}
+            snapshot(testUi) {}
+        }
+    }
+
     val deploy = BuildType {
-        id("${prefix}_Deploy_Preproduction")
-        name = "$prefix :: Deploy"
+        id("${prefix}_Deploy")
+        name = "$prefix :: Deploy to preproduction"
         type = BuildTypeSettings.Type.DEPLOYMENT
 
         vcs {
@@ -98,9 +114,7 @@ class StandardPipeline(
         }
 
         dependencies {
-            snapshot(testUnit) {}
-            snapshot(testIntegration) {}
-            snapshot(testUi) {}
+            snapshot(allTests) {}
         }
     }
 
@@ -109,6 +123,7 @@ class StandardPipeline(
         project.buildType(testUnit)
         project.buildType(testIntegration)
         project.buildType(testUi)
+        project.buildType(allTests)
         project.buildType(deploy)
     }
 }
