@@ -21,9 +21,9 @@ class StandardPipeline(
         }
     }
 
-    val test = BuildType {
-        id("${prefix}_Test")
-        name = "$prefix :: Test"
+    val testUnit = BuildType {
+        id("${prefix}_Test_Unit")
+        name = "$prefix :: Test :: Unit"
 
         vcs {
             root(DslContext.settingsRoot)
@@ -31,7 +31,7 @@ class StandardPipeline(
 
         steps {
             script {
-                name = "Test"
+                name = "Unit tests"
                 scriptContent = "./gradlew test"
             }
         }
@@ -41,8 +41,48 @@ class StandardPipeline(
         }
     }
 
+    val testIntegration = BuildType {
+        id("${prefix}_Test_Integration")
+        name = "$prefix :: Test :: Integration"
+
+        vcs {
+            root(DslContext.settingsRoot)
+        }
+
+        steps {
+            script {
+                name = "Integration tests"
+                scriptContent = "./gradlew integrationTest"
+            }
+        }
+
+        dependencies {
+            snapshot(build) {}
+        }
+    }
+
+    val testUi = BuildType {
+        id("${prefix}_Test_UI")
+        name = "$prefix :: Test :: UI"
+
+        vcs {
+            root(DslContext.settingsRoot)
+        }
+
+        steps {
+            script {
+                name = "UI tests"
+                scriptContent = "./gradlew uiTest"
+            }
+        }
+
+        dependencies {
+            snapshot(build) {}
+        }
+    }
+
     val deploy = BuildType {
-        id("${prefix}_Deploy")
+        id("${prefix}_Deploy Preproduction")
         name = "$prefix :: Deploy"
         type = BuildTypeSettings.Type.DEPLOYMENT
 
@@ -58,13 +98,17 @@ class StandardPipeline(
         }
 
         dependencies {
-            snapshot(test) {}
+            snapshot(testUnit) {}
+            snapshot(testIntegration) {}
+            snapshot(testUi) {}
         }
     }
 
     fun registerIn(project: Project) {
         project.buildType(build)
-        project.buildType(test)
+        project.buildType(testUnit)
+        project.buildType(testIntegration)
+        project.buildType(testUi)
         project.buildType(deploy)
     }
 }
