@@ -15,4 +15,10 @@ project {
         name = "Frontend"
         StandardPipeline("Frontend").registerIn(this)
     }
+
+    subProject {
+        id("API")
+        name = "API"
+        StandardPipeline("API").registerIn(this)
+    }
 }
