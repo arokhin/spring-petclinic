@@ -18,6 +18,10 @@ class StandardPipeline(
                 name = "Build"
                 scriptContent = "./gradlew clean build"
             }
+            script {
+                name = "Demo step"
+                scriptContent = "echo 'Hello from TeamCity!'" + "\n"
+            }
         }
     }
 

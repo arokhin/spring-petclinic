@@ -17,7 +17,7 @@ project {
     }
 
     subProject {
-        id("API")
+        id("API_Project")
         name = "API"
         StandardPipeline("API").registerIn(this)
     }
