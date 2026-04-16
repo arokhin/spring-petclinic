@@ -21,4 +21,10 @@ project {
         name = "API"
         StandardPipeline("API").registerIn(this)
     }
+
+    subProject {
+        id("Mobile_APP")
+        name = "Mobile"
+        StandardPipeline("Mobile").registerIn(this)
+    }
 }
