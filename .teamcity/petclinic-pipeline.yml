@@ -1,0 +1,105 @@
+jobs:
+  CodeQuality:
+    name: Code Quality Check
+    steps:
+      - type: maven
+        goals: io.spring.javaformat:spring-javaformat-maven-plugin:validate
+        name: Validate Java Format
+        jdk: 17
+      - type: maven
+        goals: checkstyle:check
+        name: Run Checkstyle
+        jdk: 17
+    enable-dependency-cache: true
+
+  Build:
+    name: Build
+    steps:
+      - type: maven
+        goals: clean package -DskipTests
+        name: Maven Build
+        jdk: 17
+    enable-dependency-cache: true
+    dependencies:
+      - CodeQuality
+
+  UnitTests:
+    name: Unit Tests
+    steps:
+      - type: maven
+        goals: test
+        name: Run Unit Tests
+        jdk: 17
+    enable-dependency-cache: true
+    dependencies:
+      - Build
+
+  IntegrationTestsH2:
+    name: Integration Tests (H2)
+    steps:
+      - type: maven
+        goals: verify -Dtest=PetClinicIntegrationTests
+        name: Run H2 Integration Tests
+        jdk: 17
+    enable-dependency-cache: true
+    dependencies:
+      - Build
+
+  IntegrationTestsMySQL:
+    name: Integration Tests (MySQL)
+    steps:
+      - type: maven
+        goals: verify -Dtest=MySqlIntegrationTests
+        name: Run MySQL Integration Tests
+        jdk: 17
+    enable-dependency-cache: true
+    dependencies:
+      - Build
+
+  IntegrationTestsPostgreSQL:
+    name: Integration Tests (PostgreSQL)
+    steps:
+      - type: maven
+        goals: verify -Dtest=PostgresIntegrationTests
+        name: Run PostgreSQL Integration Tests
+        jdk: 17
+    enable-dependency-cache: true
+    dependencies:
+      - Build
+
+  CodeCoverage:
+    name: Code Coverage
+    steps:
+      - type: maven
+        goals: jacoco:report
+        name: Generate Coverage Report
+        jdk: 17
+    enable-dependency-cache: true
+    dependencies:
+      - UnitTests
+      - IntegrationTestsH2
+      - IntegrationTestsMySQL
+      - IntegrationTestsPostgreSQL
+
+  BuildDockerImage:
+    name: Build Container Image
+    steps:
+      - type: maven
+        goals: spring-boot:build-image
+        name: Build Docker Image
+        jdk: 17
+    enable-dependency-cache: true
+    dependencies:
+      - UnitTests
+      - IntegrationTestsH2
+
+  GenerateSBOM:
+    name: Generate SBOM
+    steps:
+      - type: maven
+        goals: org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom
+        name: Generate Software Bill of Materials
+        jdk: 17
+    enable-dependency-cache: true
+    dependencies:
+      - Build
