@@ -3,12 +3,8 @@ jobs:
     name: Code Quality Check
     steps:
       - type: maven
-        goals: io.spring.javaformat:spring-javaformat-maven-plugin:validate
-        name: Validate Java Format
-        jdk: 17
-      - type: maven
-        goals: checkstyle:check
-        name: Run Checkstyle
+        goals: validate
+        name: Run Code Quality Checks
         jdk: 17
     enable-dependency-cache: true
 
