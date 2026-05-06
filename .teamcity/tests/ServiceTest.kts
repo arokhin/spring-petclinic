@@ -20,7 +20,7 @@ object ServiceTests : BuildType({
     name = "Service: Tests"
     description = "Runs the service test suite using the shared TestsTemplate baseline."
 
-    templates(TestsTemplate)
+    templates(UnitTestsTemplate)
 
     params {
         // Template overrides for this specific service.

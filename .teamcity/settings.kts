@@ -1,10 +1,8 @@
 import jetbrains.buildServer.configs.kotlin.*
-import templates.*
-import tests.*
+import templates.UnitTestsTemplate
 
 version = "2024.12"
 
 project {
-    template(TestsTemplate)
-    buildType(ServiceTests)
+    template(UnitTestsTemplate)
 }
