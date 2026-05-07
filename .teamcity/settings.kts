@@ -6,6 +6,7 @@ project {
     subProject(createStandardSubProject("Backend"))
     subProject(createStandardSubProject("Frontend"))
     subProject(createStandardSubProject("API"))
+    subProject(createStandardSubProject("Mobile"))
 }
 
 fun createStandardSubProject(projectName: String) = Project {

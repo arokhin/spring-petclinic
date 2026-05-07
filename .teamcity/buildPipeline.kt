@@ -1,147 +1,54 @@
 import jetbrains.buildServer.configs.kotlin.*
-import jetbrains.buildServer.configs.kotlin.buildSteps.script
 
 class StandardPipeline(
     private val prefix: String
 ) {
 
-    val build = BuildType {
-        id("${prefix}_Build")
-        name = "$prefix :: Build"
-
-        vcs {
-            root(DslContext.settingsRoot)
-        }
-
+    val build = standardBuildType(prefix, "Build") {
         steps {
-            script {
-                name = "Build"
-                scriptContent = "./gradlew clean build"
-            }
+            gradleScript("Clean", "clean")
         }
     }
 
-    val qodana = BuildType {
-        id("${prefix}_Qodana")
-        name = "$prefix :: Qodana"
-
-        vcs {
-            root(DslContext.settingsRoot)
-        }
-
+    val qodana = standardBuildType(prefix, "Qodana") {
         steps {
-            script {
-                name = "Qodana"
-                scriptContent = """
-                    docker run --rm \
-                      -v %system.teamcity.build.checkoutDir%:/data/project/ \
-                      -v qodana-cache:/data/cache/ \
-                      jetbrains/qodana-jvm:latest \
-                      --show-report
-                """.trimIndent()
-            }
+            qodanaScript()
         }
 
-        dependencies {
-            snapshot(build) {}
-        }
+        dependsOnBuild(build)
     }
 
-    val testUnit = BuildType {
-        id("${prefix}_Test_Unit")
-        name = "$prefix :: Test :: Unit"
-
-        vcs {
-            root(DslContext.settingsRoot)
-        }
-
+    val testUnit = standardBuildType(prefix, "Test_Unit") {
         steps {
-            script {
-                name = "Unit tests"
-                scriptContent = "./gradlew test"
-            }
+            gradleScript("Test", "test")
         }
 
-        dependencies {
-            snapshot(build) {}
-        }
+        dependsOnBuild(build)
     }
 
-    val testIntegration = BuildType {
-        id("${prefix}_Test_Integration")
-        name = "$prefix :: Test :: Integration"
-
-        vcs {
-            root(DslContext.settingsRoot)
-        }
-
+    val testIntegration = standardBuildType(prefix, "Test_Integration") {
         steps {
-            script {
-                name = "Integration tests"
-                scriptContent = "./gradlew integrationTest"
-            }
+            gradleScript("Integration Test", "integrationTest")
         }
 
-        dependencies {
-            snapshot(build) {}
-        }
+        dependsOnBuild(build)
     }
 
-    val testUi = BuildType {
-        id("${prefix}_Test_UI")
-        name = "$prefix :: Test :: UI"
-
-        vcs {
-            root(DslContext.settingsRoot)
-        }
-
-        steps {
-            script {
-                name = "UI tests"
-                scriptContent = "./gradlew uiTest"
-            }
-        }
-
-        dependencies {
-            snapshot(build) {}
-        }
-    }
-
-    val allTests = BuildType {
-        id("${prefix}_AllTests")
-        name = "$prefix :: Tests (All)"
+    val allTests = standardBuildType(prefix, "AllTests") {
         type = BuildTypeSettings.Type.COMPOSITE
 
-        vcs {
-            root(DslContext.settingsRoot)
-        }
-
-        dependencies {
-            snapshot(testUnit) {}
-            snapshot(testIntegration) {}
-            snapshot(testUi) {}
-        }
+        dependsOnBuild(testUnit, testIntegration)
     }
 
-    val deploy = BuildType {
-        id("${prefix}_Deploy")
-        name = "$prefix :: Deploy to preproduction"
+    val deploy = standardBuildType(prefix, "Deploy") {
+        name = buildName(prefix, "Deploy to preproduction")
         type = BuildTypeSettings.Type.DEPLOYMENT
 
-        vcs {
-            root(DslContext.settingsRoot)
-        }
-
         steps {
-            script {
-                name = "Deploy"
-                scriptContent = "./gradlew publish"
-            }
+            gradleScript("Deploy to preproduction", "publish")
         }
 
-        dependencies {
-            snapshot(allTests) {}
-        }
+        dependsOnBuild(allTests)
     }
 
     fun registerIn(project: Project) {
@@ -149,7 +56,6 @@ class StandardPipeline(
         project.buildType(qodana)
         project.buildType(testUnit)
         project.buildType(testIntegration)
-        project.buildType(testUi)
         project.buildType(allTests)
         project.buildType(deploy)
     }
