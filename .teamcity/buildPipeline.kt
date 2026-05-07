@@ -21,6 +21,32 @@ class StandardPipeline(
         }
     }
 
+    val qodana = BuildType {
+        id("${prefix}_Qodana")
+        name = "$prefix :: Qodana"
+
+        vcs {
+            root(DslContext.settingsRoot)
+        }
+
+        steps {
+            script {
+                name = "Qodana"
+                scriptContent = """
+                    docker run --rm \
+                      -v %system.teamcity.build.checkoutDir%:/data/project/ \
+                      -v qodana-cache:/data/cache/ \
+                      jetbrains/qodana-jvm:latest \
+                      --show-report
+                """.trimIndent()
+            }
+        }
+
+        dependencies {
+            snapshot(build) {}
+        }
+    }
+
     val testUnit = BuildType {
         id("${prefix}_Test_Unit")
         name = "$prefix :: Test :: Unit"
@@ -120,6 +146,7 @@ class StandardPipeline(
 
     fun registerIn(project: Project) {
         project.buildType(build)
+        project.buildType(qodana)
         project.buildType(testUnit)
         project.buildType(testIntegration)
         project.buildType(testUi)
