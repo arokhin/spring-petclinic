@@ -2,8 +2,16 @@ import jetbrains.buildServer.configs.kotlin.*
 import jetbrains.buildServer.configs.kotlin.buildFeatures.commitStatusPublisher
 import jetbrains.buildServer.configs.kotlin.buildSteps.script
 import jetbrains.buildServer.configs.kotlin.triggers.vcs
+import jetbrains.buildServer.configs.kotlin.*
+import jetbrains.buildServer.configs.kotlin.vcs.GitVcsRoot
 
 version = "2025.11"
+
+object HttpsGithubComArokhinSpringPetclinicGit : GitVcsRoot({
+    name = "https://github.com/arokhin/spring-petclinic.git"
+    url = "https://github.com/arokhin/spring-petclinic.git"
+    branch = "heavy-ai-project"
+})
 
 project {
     id("AiHeavyProject")
@@ -18,7 +26,7 @@ project {
         param("policy.mode", "strict")
     }
 
-//    vcsRoot(ProjectVcs)
+    vcsRoot(HttpsGithubComArokhinSpringPetclinicGit)
 
     template(SharedCiFoundation)
 
@@ -34,23 +42,12 @@ project {
     buildType(DeployStaging)
 }
 
-//object ProjectVcs : GitVcsRoot({
-//    id("ProjectVcs")
-//    name = "Project repository"
-//    url = "%repo.url%"
-//    branch = "%repo.branch%"
-//    branchSpec = "+:refs/heads/*"
-//})
 
 object SharedCiFoundation : Template({
     id("SharedCiFoundation")
     name = "Shared CI foundation"
     description = "Common validation, traceability, and reporting behavior reused by all build configurations."
 
-//    vcs {
-//        root(ProjectVcs)
-//        cleanCheckout = true
-//    }
 
     artifactRules = """
         build/reports/** => reports.zip
