@@ -13,8 +13,6 @@ object HttpsGithubComArokhinSpringPetclinicGit : GitVcsRoot({
 })
 
 project {
-    id("AIHeavyProject")
-    name = "AI-heavy project CI"
     description = "Reference CI project for repositories with substantial AI-generated or AI-assisted code contribution."
 
     params {
