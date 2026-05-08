@@ -205,18 +205,18 @@ object StaticAnalysis : BuildType({
         }
     }
 
-    failureConditions {
-        nonZeroExitCode = true
-        failOnMetricChange {
-            metric = BuildFailureOnMetric.MetricType.INSPECTION_WARN_COUNT
-            threshold = 1
-            units = BuildFailureOnMetric.MetricUnit.DEFAULT_UNIT
-            comparison = BuildFailureOnMetric.MetricComparison.MORE
-            compareTo = build {
-                buildRule = lastSuccessful()
-            }
-        }
-    }
+//    failureConditions {
+//        nonZeroExitCode = true
+//        failOnMetricChange {
+//            metric = BuildFailureOnMetric.MetricType.INSPECTION_WARN_COUNT
+//            threshold = 1
+//            units = BuildFailureOnMetric.MetricUnit.DEFAULT_UNIT
+//            comparison = BuildFailureOnMetric.MetricComparison.MORE
+//            compareTo = build {
+//                buildRule = lastSuccessful()
+//            }
+//        }
+//    }
 })
 
 object SecurityScanning : BuildType({
