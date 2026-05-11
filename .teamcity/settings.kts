@@ -1,5 +1,6 @@
 import jetbrains.buildServer.configs.kotlin.*
 import jetbrains.buildServer.configs.kotlin.buildFeatures.commitStatusPublisher
+import jetbrains.buildServer.configs.kotlin.buildSteps.gradle
 import jetbrains.buildServer.configs.kotlin.buildSteps.script
 import jetbrains.buildServer.configs.kotlin.triggers.vcs
 import jetbrains.buildServer.configs.kotlin.vcs.GitVcsRoot
@@ -115,11 +116,9 @@ object UnitTests : BuildType({
     templates(SharedCiFoundation)
 
     steps {
-        script {
+        gradle {
             name = "Run unit tests"
-            scriptContent = """
-                ./gradlew --no-daemon clean test
-            """.trimIndent()
+            tasks = "--no-daemon clean test"
         }
     }
 })
