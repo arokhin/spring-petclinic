@@ -118,7 +118,10 @@ object UnitTests : BuildType({
     steps {
         gradle {
             name = "Run unit tests"
-            tasks = "--no-daemon clean test"
+            tasks = "clean test"
+            gradleParams = "--no-daemon"
+            useGradleWrapper = true
+            gradleWrapperPath = "."
         }
     }
 })
