@@ -46,6 +46,9 @@ object SharedCiFoundation : Template({
     name = "Shared CI foundation"
     description = "Common validation, traceability, and reporting behavior reused by all build configurations."
 
+    vcs {
+        root(HttpsGithubComArokhinSpringPetclinicGit)
+    }
 
     artifactRules = """
         build/reports/** => reports.zip
