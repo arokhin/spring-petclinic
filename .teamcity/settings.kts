@@ -29,6 +29,7 @@ project {
     template(SharedCiFoundation)
 
     buildType(ValidateAll)
+    buildType(WarmCache)
     buildType(UnitTests)
     buildType(IntegrationTests)
     buildType(RegressionTests)
@@ -55,11 +56,11 @@ object SharedCiFoundation : Template({
         reports/** => reports.zip
         sbom/** => sbom.zip
         provenance/** => provenance.zip
-        .gradle/caches/** => gradle-cache.zip
     """.trimIndent()
 
     params {
-        param("env.GRADLE_USER_HOME", "%teamcity.build.checkoutDir%/.gradle")
+        // Use shared Gradle cache directory on TeamCity agent
+        param("env.GRADLE_BUILD_CACHE_DIR", "%teamcity.agent.work.dir%/../gradle-build-cache")
     }
 
     features {
@@ -118,15 +119,37 @@ object ValidateAll : BuildType({
     }
 })
 
+object WarmCache : BuildType({
+    id("WarmCache")
+    name = "00a Warm Gradle cache"
+    description = "Downloads dependencies to share cache with other builds"
+
+    templates(SharedCiFoundation)
+
+    artifactRules = """
+        .gradle/caches/modules-2/** => gradle-cache.zip
+    """.trimIndent()
+
+    steps {
+        gradle {
+            name = "Download dependencies"
+            tasks = "dependencies --write-verification-metadata sha256"
+            gradleParams = "--no-daemon --build-cache --refresh-dependencies"
+            useGradleWrapper = true
+            gradleWrapperPath = "."
+        }
+    }
+})
+
 object UnitTests : BuildType({
     id("UnitTests")
     name = "01 Unit tests"
     templates(SharedCiFoundation)
 
     dependencies {
-        artifacts(UnitTests) {
+        artifacts(WarmCache) {
             buildRule = lastSuccessful()
-            artifactRules = "gradle-cache.zip!** => .gradle/caches"
+            artifactRules = "gradle-cache.zip!** => .gradle/caches/modules-2"
             cleanDestination = false
         }
     }
@@ -135,7 +158,7 @@ object UnitTests : BuildType({
         gradle {
             name = "Run unit tests"
             tasks = "clean test"
-            gradleParams = "--no-daemon --build-cache"
+            gradleParams = "--no-daemon --build-cache --offline"
             useGradleWrapper = true
             gradleWrapperPath = "."
         }
@@ -149,13 +172,18 @@ object IntegrationTests : BuildType({
 
     dependencies {
         snapshot(UnitTests) { onDependencyFailure = FailureAction.FAIL_TO_START }
+        artifacts(WarmCache) {
+            buildRule = lastSuccessful()
+            artifactRules = "gradle-cache.zip!** => .gradle/caches/modules-2"
+            cleanDestination = false
+        }
     }
 
     steps {
         script {
             name = "Run integration tests"
             scriptContent = """
-                ./gradlew --no-daemon integrationTest
+                ./gradlew --no-daemon --build-cache integrationTest
             """.trimIndent()
         }
     }
@@ -168,13 +196,18 @@ object RegressionTests : BuildType({
 
     dependencies {
         snapshot(UnitTests) { onDependencyFailure = FailureAction.FAIL_TO_START }
+        artifacts(WarmCache) {
+            buildRule = lastSuccessful()
+            artifactRules = "gradle-cache.zip!** => .gradle/caches/modules-2"
+            cleanDestination = false
+        }
     }
 
     steps {
         script {
             name = "Run regression suite"
             scriptContent = """
-                ./gradlew --no-daemon regressionTest
+                ./gradlew --no-daemon --build-cache regressionTest
             """.trimIndent()
         }
     }
@@ -187,13 +220,18 @@ object EndToEndTests : BuildType({
 
     dependencies {
         snapshot(IntegrationTests) { onDependencyFailure = FailureAction.FAIL_TO_START }
+        artifacts(WarmCache) {
+            buildRule = lastSuccessful()
+            artifactRules = "gradle-cache.zip!** => .gradle/caches/modules-2"
+            cleanDestination = false
+        }
     }
 
     steps {
         script {
             name = "Run E2E tests"
             scriptContent = """
-                ./gradlew --no-daemon e2eTest
+                ./gradlew --no-daemon --build-cache e2eTest
             """.trimIndent()
         }
     }
@@ -204,12 +242,20 @@ object StaticAnalysis : BuildType({
     name = "05 Static analysis and quality gates"
     templates(SharedCiFoundation)
 
+    dependencies {
+        artifacts(WarmCache) {
+            buildRule = lastSuccessful()
+            artifactRules = "gradle-cache.zip!** => .gradle/caches/modules-2"
+            cleanDestination = false
+        }
+    }
+
     steps {
         script {
             name = "Style, duplication, complexity, maintainability"
             scriptContent = """
-                ./gradlew --no-daemon ktlintCheck detekt checkstyleMain
-                ./gradlew --no-daemon jacocoTestReport
+                ./gradlew --no-daemon --build-cache ktlintCheck detekt checkstyleMain
+                ./gradlew --no-daemon --build-cache jacocoTestReport
 
                 echo "Static analysis tasks completed"
             """.trimIndent()
@@ -235,6 +281,14 @@ object SecurityScanning : BuildType({
     name = "06 Security scanning"
     templates(SharedCiFoundation)
 
+    dependencies {
+        artifacts(WarmCache) {
+            buildRule = lastSuccessful()
+            artifactRules = "gradle-cache.zip!** => .gradle/caches/modules-2"
+            cleanDestination = false
+        }
+    }
+
     steps {
         script {
             name = "Dependencies, secrets, vulnerabilities, infrastructure"
@@ -242,7 +296,7 @@ object SecurityScanning : BuildType({
                 mkdir -p reports/security sbom
 
                 # Dependency and vulnerability scanning
-                ./gradlew --no-daemon dependencyCheckAnalyze
+                ./gradlew --no-daemon --build-cache dependencyCheckAnalyze
 
                 # Create placeholder files for tools not installed on agent
                 echo '{"version":"2.1.0","runs":[]}' > reports/security/gitleaks.sarif
@@ -293,6 +347,11 @@ object PackageArtifact : BuildType({
         snapshot(StaticAnalysis) { onDependencyFailure = FailureAction.FAIL_TO_START }
         snapshot(SecurityScanning) { onDependencyFailure = FailureAction.FAIL_TO_START }
         snapshot(PolicyAsCode) { onDependencyFailure = FailureAction.FAIL_TO_START }
+        artifacts(WarmCache) {
+            buildRule = lastSuccessful()
+            artifactRules = "gradle-cache.zip!** => .gradle/caches/modules-2"
+            cleanDestination = false
+        }
     }
 
     artifactRules = """
@@ -306,7 +365,7 @@ object PackageArtifact : BuildType({
         script {
             name = "Build package"
             scriptContent = """
-                ./gradlew --no-daemon clean assemble
+                ./gradlew --no-daemon --build-cache clean assemble
             """.trimIndent()
         }
         script {

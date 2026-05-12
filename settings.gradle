@@ -1,1 +1,15 @@
 rootProject.name = 'spring-petclinic'
+
+// Configure build cache
+buildCache {
+    local {
+        enabled = true
+        directory = System.getenv("GRADLE_BUILD_CACHE_DIR") ?: "${System.getProperty("user.home")}/.gradle/caches/build-cache-1"
+    }
+
+    // Optional: Configure remote cache if available
+    // remote(HttpBuildCache) {
+    //     url = System.getenv("GRADLE_CACHE_URL") ?: "http://your-cache-server:5071/"
+    //     push = true
+    // }
+}
