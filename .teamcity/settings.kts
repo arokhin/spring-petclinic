@@ -28,7 +28,6 @@ project {
     template(SharedCiFoundation)
 
     buildType(ValidateAll)
-    buildType(WarmCache)
     buildType(UnitTests)
     buildType(IntegrationTests)
     buildType(RegressionTests)
@@ -118,81 +117,10 @@ object ValidateAll : BuildType({
     }
 })
 
-object WarmCache : BuildType({
-    id("WarmCache")
-    name = "00a Warm Gradle cache"
-    description = "Downloads all dependencies and stores them for offline use"
-
-    templates(SharedCiFoundation)
-
-    artifactRules = """
-        .gradle/caches/modules-2/** => gradle-cache.zip
-        .m2/repository/** => maven-local.zip
-    """.trimIndent()
-
-    params {
-        param("env.MAVEN_OPTS", "-Dmaven.repo.local=%teamcity.build.checkoutDir%/.m2/repository")
-    }
-
-    steps {
-        script {
-            name = "Download all dependencies with retries"
-            scriptContent = """
-                #!/bin/bash
-                MAX_RETRIES=3
-                RETRY_DELAY=60
-
-                for i in $(seq 1 ${'$'}MAX_RETRIES); do
-                  echo "Attempt ${'$'}i of ${'$'}MAX_RETRIES..."
-
-                  if ./gradlew --no-daemon --build-cache --refresh-dependencies \
-                      dependencies \
-                      build -x test \
-                      --console=plain \
-                      --stacktrace 2>&1 | tee gradle-output.log; then
-                    echo "Successfully downloaded dependencies"
-                    break
-                  fi
-
-                  if [ ${'$'}i -lt ${'$'}MAX_RETRIES ]; then
-                    if grep -q "429" gradle-output.log; then
-                      echo "Hit rate limit (429), waiting ${'$'}RETRY_DELAY seconds before retry..."
-                      sleep ${'$'}RETRY_DELAY
-                      RETRY_DELAY=${'$'}((RETRY_DELAY * 2))
-                    else
-                      echo "Error occurred, waiting ${'$'}RETRY_DELAY seconds..."
-                      sleep ${'$'}RETRY_DELAY
-                    fi
-                  fi
-                done
-
-                # Check if we have any cached dependencies
-                if [ -d .gradle/caches/modules-2 ] && [ "$(ls -A .gradle/caches/modules-2)" ]; then
-                  echo "Cache directory exists with content, will publish artifacts"
-                  exit 0
-                else
-                  echo "WARNING: No cache was created"
-                  # Still exit 0 to allow whatever was downloaded to be published
-                  exit 0
-                fi
-            """.trimIndent()
-        }
-    }
-})
-
 object UnitTests : BuildType({
     id("UnitTests")
     name = "01 Unit tests"
     templates(SharedCiFoundation)
-
-    dependencies {
-        snapshot(WarmCache) { onDependencyFailure = FailureAction.FAIL_TO_START }
-        artifacts(WarmCache) {
-            buildRule = lastSuccessful()
-            artifactRules = "gradle-cache.zip!** => .gradle/caches/modules-2"
-            cleanDestination = false
-        }
-    }
 
     steps {
         script {
@@ -219,12 +147,6 @@ object IntegrationTests : BuildType({
 
     dependencies {
         snapshot(UnitTests) { onDependencyFailure = FailureAction.FAIL_TO_START }
-        snapshot(WarmCache) { onDependencyFailure = FailureAction.FAIL_TO_START }
-        artifacts(WarmCache) {
-            buildRule = lastSuccessful()
-            artifactRules = "gradle-cache.zip!** => .gradle/caches/modules-2"
-            cleanDestination = false
-        }
     }
 
     steps {
@@ -244,12 +166,6 @@ object RegressionTests : BuildType({
 
     dependencies {
         snapshot(UnitTests) { onDependencyFailure = FailureAction.FAIL_TO_START }
-        snapshot(WarmCache) { onDependencyFailure = FailureAction.FAIL_TO_START }
-        artifacts(WarmCache) {
-            buildRule = lastSuccessful()
-            artifactRules = "gradle-cache.zip!** => .gradle/caches/modules-2"
-            cleanDestination = false
-        }
     }
 
     steps {
@@ -269,12 +185,6 @@ object EndToEndTests : BuildType({
 
     dependencies {
         snapshot(IntegrationTests) { onDependencyFailure = FailureAction.FAIL_TO_START }
-        snapshot(WarmCache) { onDependencyFailure = FailureAction.FAIL_TO_START }
-        artifacts(WarmCache) {
-            buildRule = lastSuccessful()
-            artifactRules = "gradle-cache.zip!** => .gradle/caches/modules-2"
-            cleanDestination = false
-        }
     }
 
     steps {
@@ -291,15 +201,6 @@ object StaticAnalysis : BuildType({
     id("StaticAnalysis")
     name = "05 Static analysis and quality gates"
     templates(SharedCiFoundation)
-
-    dependencies {
-        snapshot(WarmCache) { onDependencyFailure = FailureAction.FAIL_TO_START }
-        artifacts(WarmCache) {
-            buildRule = lastSuccessful()
-            artifactRules = "gradle-cache.zip!** => .gradle/caches/modules-2"
-            cleanDestination = false
-        }
-    }
 
     steps {
         script {
@@ -332,15 +233,6 @@ object SecurityScanning : BuildType({
     id("SecurityScanning")
     name = "06 Security scanning"
     templates(SharedCiFoundation)
-
-    dependencies {
-        snapshot(WarmCache) { onDependencyFailure = FailureAction.FAIL_TO_START }
-        artifacts(WarmCache) {
-            buildRule = lastSuccessful()
-            artifactRules = "gradle-cache.zip!** => .gradle/caches/modules-2"
-            cleanDestination = false
-        }
-    }
 
     steps {
         script {
@@ -400,12 +292,6 @@ object PackageArtifact : BuildType({
         snapshot(StaticAnalysis) { onDependencyFailure = FailureAction.FAIL_TO_START }
         snapshot(SecurityScanning) { onDependencyFailure = FailureAction.FAIL_TO_START }
         snapshot(ComplianceGates) { onDependencyFailure = FailureAction.FAIL_TO_START }
-        snapshot(WarmCache) { onDependencyFailure = FailureAction.FAIL_TO_START }
-        artifacts(WarmCache) {
-            buildRule = lastSuccessful()
-            artifactRules = "gradle-cache.zip!** => .gradle/caches/modules-2"
-            cleanDestination = false
-        }
     }
 
     artifactRules = """
