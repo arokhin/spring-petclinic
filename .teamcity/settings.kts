@@ -1,6 +1,5 @@
 import jetbrains.buildServer.configs.kotlin.*
 import jetbrains.buildServer.configs.kotlin.buildFeatures.commitStatusPublisher
-import jetbrains.buildServer.configs.kotlin.buildSteps.gradle
 import jetbrains.buildServer.configs.kotlin.buildSteps.script
 import jetbrains.buildServer.configs.kotlin.triggers.vcs
 import jetbrains.buildServer.configs.kotlin.vcs.GitVcsRoot
@@ -180,6 +179,7 @@ object UnitTests : BuildType({
     templates(SharedCiFoundation)
 
     dependencies {
+        snapshot(WarmCache) { onDependencyFailure = FailureAction.FAIL_TO_START }
         artifacts(WarmCache) {
             buildRule = lastSuccessful()
             artifactRules = "gradle-cache.zip!** => .gradle/caches/modules-2"
@@ -212,6 +212,7 @@ object IntegrationTests : BuildType({
 
     dependencies {
         snapshot(UnitTests) { onDependencyFailure = FailureAction.FAIL_TO_START }
+        snapshot(WarmCache) { onDependencyFailure = FailureAction.FAIL_TO_START }
         artifacts(WarmCache) {
             buildRule = lastSuccessful()
             artifactRules = "gradle-cache.zip!** => .gradle/caches/modules-2"
@@ -236,6 +237,7 @@ object RegressionTests : BuildType({
 
     dependencies {
         snapshot(UnitTests) { onDependencyFailure = FailureAction.FAIL_TO_START }
+        snapshot(WarmCache) { onDependencyFailure = FailureAction.FAIL_TO_START }
         artifacts(WarmCache) {
             buildRule = lastSuccessful()
             artifactRules = "gradle-cache.zip!** => .gradle/caches/modules-2"
@@ -260,6 +262,7 @@ object EndToEndTests : BuildType({
 
     dependencies {
         snapshot(IntegrationTests) { onDependencyFailure = FailureAction.FAIL_TO_START }
+        snapshot(WarmCache) { onDependencyFailure = FailureAction.FAIL_TO_START }
         artifacts(WarmCache) {
             buildRule = lastSuccessful()
             artifactRules = "gradle-cache.zip!** => .gradle/caches/modules-2"
@@ -283,6 +286,7 @@ object StaticAnalysis : BuildType({
     templates(SharedCiFoundation)
 
     dependencies {
+        snapshot(WarmCache) { onDependencyFailure = FailureAction.FAIL_TO_START }
         artifacts(WarmCache) {
             buildRule = lastSuccessful()
             artifactRules = "gradle-cache.zip!** => .gradle/caches/modules-2"
@@ -323,6 +327,7 @@ object SecurityScanning : BuildType({
     templates(SharedCiFoundation)
 
     dependencies {
+        snapshot(WarmCache) { onDependencyFailure = FailureAction.FAIL_TO_START }
         artifacts(WarmCache) {
             buildRule = lastSuccessful()
             artifactRules = "gradle-cache.zip!** => .gradle/caches/modules-2"
@@ -388,6 +393,7 @@ object PackageArtifact : BuildType({
         snapshot(StaticAnalysis) { onDependencyFailure = FailureAction.FAIL_TO_START }
         snapshot(SecurityScanning) { onDependencyFailure = FailureAction.FAIL_TO_START }
         snapshot(ComplianceGates) { onDependencyFailure = FailureAction.FAIL_TO_START }
+        snapshot(WarmCache) { onDependencyFailure = FailureAction.FAIL_TO_START }
         artifacts(WarmCache) {
             buildRule = lastSuccessful()
             artifactRules = "gradle-cache.zip!** => .gradle/caches/modules-2"
