@@ -252,12 +252,13 @@ object StaticAnalysis : BuildType({
 
     steps {
         script {
-            name = "Style, duplication, complexity, maintainability"
+            name = "Run Qodana static analysis"
             scriptContent = """
-                ./gradlew --no-daemon --build-cache ktlintCheck detekt checkstyleMain
-                ./gradlew --no-daemon --build-cache jacocoTestReport
-
-                echo "Static analysis tasks completed"
+                docker run --rm \
+                  -v ${'$'}(pwd):/data/project \
+                  -v ${'$'}(pwd)/qodana-results:/data/results \
+                  jetbrains/qodana-jvm:latest \
+                  --save-report
             """.trimIndent()
         }
     }
