@@ -332,6 +332,7 @@ object DeployStaging : BuildType({
     name = "09 Deploy to staging"
     description = "Deployment is allowed only after all validation, security, policy, and packaging gates pass."
     templates(SharedCiFoundation)
+    type = Type.DEPLOYMENT
 
     dependencies {
         snapshot(ValidateAll) { onDependencyFailure = FailureAction.FAIL_TO_START }
