@@ -305,7 +305,7 @@ object PackageArtifact : BuildType({
                   "artifact": "%artifact.name%",
                   "buildId": "%teamcity.build.id%",
                   "buildNumber": "%build.number%",
-                  "branch": "%teamcity.build.branch%",
+                  "branch": "${'$'}{teamcity_build_branch:-unknown}",
                   "revision": "%build.vcs.number%",
                   "project": "%system.teamcity.projectName%",
                   "configuration": "%system.teamcity.buildConfName%",
