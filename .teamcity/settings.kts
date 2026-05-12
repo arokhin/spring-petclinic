@@ -36,7 +36,7 @@ project {
     buildType(EndToEndTests)
     buildType(StaticAnalysis)
     buildType(SecurityScanning)
-    buildType(PolicyAsCode)
+    buildType(ComplianceGates)
     buildType(PackageArtifact)
     buildType(DeployStaging)
 }
@@ -105,7 +105,7 @@ object ValidateAll : BuildType({
         snapshot(EndToEndTests) { onDependencyFailure = FailureAction.FAIL_TO_START }
         snapshot(StaticAnalysis) { onDependencyFailure = FailureAction.FAIL_TO_START }
         snapshot(SecurityScanning) { onDependencyFailure = FailureAction.FAIL_TO_START }
-        snapshot(PolicyAsCode) { onDependencyFailure = FailureAction.FAIL_TO_START }
+        snapshot(ComplianceGates) { onDependencyFailure = FailureAction.FAIL_TO_START }
         snapshot(PackageArtifact) { onDependencyFailure = FailureAction.FAIL_TO_START }
     }
 
@@ -308,7 +308,7 @@ object SecurityScanning : BuildType({
     }
 })
 
-object PolicyAsCode : BuildType({
+object ComplianceGates : BuildType({
     id("PolicyAsCode")
     name = "07 Policy-as-code"
     templates(SharedCiFoundation)
@@ -346,7 +346,7 @@ object PackageArtifact : BuildType({
         snapshot(UnitTests) { onDependencyFailure = FailureAction.FAIL_TO_START }
         snapshot(StaticAnalysis) { onDependencyFailure = FailureAction.FAIL_TO_START }
         snapshot(SecurityScanning) { onDependencyFailure = FailureAction.FAIL_TO_START }
-        snapshot(PolicyAsCode) { onDependencyFailure = FailureAction.FAIL_TO_START }
+        snapshot(ComplianceGates) { onDependencyFailure = FailureAction.FAIL_TO_START }
         artifacts(WarmCache) {
             buildRule = lastSuccessful()
             artifactRules = "gradle-cache.zip!** => .gradle/caches/modules-2"
