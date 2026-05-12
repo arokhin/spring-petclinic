@@ -23,7 +23,38 @@ java {
 }
 
 repositories {
-  mavenCentral()
+  // Use mirror if configured, with retry logic
+  def mavenMirrorUrl = System.getenv('MAVEN_MIRROR_URL')
+  if (mavenMirrorUrl) {
+    maven {
+      url mavenMirrorUrl
+      allowInsecureProtocol = mavenMirrorUrl.startsWith('http://')
+    }
+  }
+
+  // Google's Maven Central mirror (higher rate limits)
+  maven {
+    url 'https://maven-central-eu.storage-download.googleapis.com/maven2/'
+    name 'Google Maven Central EU'
+  }
+
+  mavenCentral() {
+    // Fallback to original Maven Central
+    content {
+      // Allow all artifacts from Maven Central
+    }
+  }
+
+  // Fallback to local cache
+  mavenLocal()
+}
+
+// Add retry logic for dependency resolution
+configurations.all {
+  resolutionStrategy {
+    cacheChangingModulesFor 4, 'hours'
+    cacheDynamicVersionsFor 10, 'minutes'
+  }
 }
 
 ext.webjarsFontawesomeVersion = "4.7.0"

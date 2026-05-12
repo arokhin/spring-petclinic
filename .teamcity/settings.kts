@@ -122,21 +122,54 @@ object ValidateAll : BuildType({
 object WarmCache : BuildType({
     id("WarmCache")
     name = "00a Warm Gradle cache"
-    description = "Downloads dependencies to share cache with other builds"
+    description = "Downloads all dependencies and stores them for offline use"
 
     templates(SharedCiFoundation)
 
     artifactRules = """
         .gradle/caches/modules-2/** => gradle-cache.zip
+        .m2/repository/** => maven-local.zip
     """.trimIndent()
 
+    params {
+        param("env.MAVEN_OPTS", "-Dmaven.repo.local=%teamcity.build.checkoutDir%/.m2/repository")
+    }
+
     steps {
-        gradle {
-            name = "Download dependencies"
-            tasks = "dependencies --write-verification-metadata sha256"
-            gradleParams = "--no-daemon --build-cache --refresh-dependencies"
-            useGradleWrapper = true
-            gradleWrapperPath = "."
+        script {
+            name = "Download all dependencies with retries"
+            scriptContent = """
+                #!/bin/bash
+                set -e
+
+                MAX_RETRIES=5
+                RETRY_DELAY=30
+
+                for i in $(seq 1 ${'$'}MAX_RETRIES); do
+                  echo "Attempt ${'$'}i of ${'$'}MAX_RETRIES..."
+
+                  if ./gradlew --no-daemon --build-cache --refresh-dependencies \
+                      dependencies \
+                      build -x test \
+                      --console=plain \
+                      --stacktrace 2>&1 | tee gradle-output.log; then
+                    echo "Successfully downloaded dependencies"
+                    exit 0
+                  fi
+
+                  if grep -q "429" gradle-output.log; then
+                    echo "Hit rate limit (429), waiting ${'$'}RETRY_DELAY seconds before retry ${'$'}((i+1))..."
+                    sleep ${'$'}RETRY_DELAY
+                    RETRY_DELAY=${'$'}((RETRY_DELAY * 2))  # Exponential backoff
+                  else
+                    echo "Error downloading dependencies (non-429), waiting ${'$'}RETRY_DELAY seconds..."
+                    sleep ${'$'}RETRY_DELAY
+                  fi
+                done
+
+                echo "Failed to download dependencies after ${'$'}MAX_RETRIES attempts"
+                exit 1
+            """.trimIndent()
         }
     }
 })
@@ -155,12 +188,19 @@ object UnitTests : BuildType({
     }
 
     steps {
-        gradle {
-            name = "Run unit tests"
-            tasks = "clean test"
-            gradleParams = "--no-daemon --build-cache --offline"
-            useGradleWrapper = true
-            gradleWrapperPath = "."
+        script {
+            name = "Run unit tests with offline fallback"
+            scriptContent = """
+                # Try online first, fall back to offline if rate limited
+                if ! ./gradlew --no-daemon --build-cache clean test 2>&1 | tee test-output.log; then
+                  if grep -q "429" test-output.log; then
+                    echo "Hit rate limit, retrying in offline mode..."
+                    ./gradlew --no-daemon --build-cache --offline clean test
+                  else
+                    exit 1
+                  fi
+                fi
+            """.trimIndent()
         }
     }
 })
