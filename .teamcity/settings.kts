@@ -1,4 +1,5 @@
 import jetbrains.buildServer.configs.kotlin.*
+import jetbrains.buildServer.configs.kotlin.buildFeatures.approval
 import jetbrains.buildServer.configs.kotlin.buildFeatures.commitStatusPublisher
 import jetbrains.buildServer.configs.kotlin.buildSteps.qodana
 import jetbrains.buildServer.configs.kotlin.buildSteps.script
@@ -58,7 +59,7 @@ object SharedCiFoundation : Template({
     """.trimIndent()
 
     params {
-        // Use shared Gradle cache directory on TeamCity agent
+        // Use a shared Gradle cache directory on TeamCity agent
         param("env.GRADLE_BUILD_CACHE_DIR", "%teamcity.agent.work.dir%/../gradle-build-cache")
     }
 
@@ -336,6 +337,12 @@ object DeployStaging : BuildType({
         snapshot(ValidateAll) { onDependencyFailure = FailureAction.FAIL_TO_START }
         artifacts(PackageArtifact) {
             artifactRules = "packages/** => input/packages"
+        }
+    }
+
+    features {
+        approval {
+            approvalRules = "user:artem.rokhin@jetbrains.com"
         }
     }
 
