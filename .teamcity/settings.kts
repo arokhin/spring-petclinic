@@ -112,7 +112,7 @@ object ValidateAll : BuildType({
         script {
             name = "Summarize validation result"
             scriptContent = """
-                echo "All mandatory validation gates passed for %teamcity.build.branch% at %build.vcs.number%"
+                echo "All mandatory validation gates passed for ${'$'}{teamcity_build_branch:-unknown} at %build.vcs.number%"
             """.trimIndent()
         }
     }
