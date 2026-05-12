@@ -1,5 +1,6 @@
 import jetbrains.buildServer.configs.kotlin.*
 import jetbrains.buildServer.configs.kotlin.buildFeatures.commitStatusPublisher
+import jetbrains.buildServer.configs.kotlin.buildSteps.qodana
 import jetbrains.buildServer.configs.kotlin.buildSteps.script
 import jetbrains.buildServer.configs.kotlin.triggers.vcs
 import jetbrains.buildServer.configs.kotlin.vcs.GitVcsRoot
@@ -203,15 +204,10 @@ object StaticAnalysis : BuildType({
     templates(SharedCiFoundation)
 
     steps {
-        script {
+        qodana {
             name = "Run Qodana static analysis"
-            scriptContent = """
-                docker run --rm \
-                  -v ${'$'}(pwd):/data/project \
-                  -v ${'$'}(pwd)/qodana-results:/data/results \
-                  jetbrains/qodana-jvm:latest \
-                  --save-report
-            """.trimIndent()
+            linter = jvm()
+            cloudToken = "credentialsJSON:qodana_token"
         }
     }
 
