@@ -1,5 +1,33 @@
 rootProject.name = 'spring-petclinic'
 
+// Configure plugin repositories to use Google mirror
+pluginManagement {
+    repositories {
+        // Custom mirror if configured
+        def mavenMirrorUrl = System.getenv('MAVEN_MIRROR_URL')
+        if (mavenMirrorUrl) {
+            maven {
+                url mavenMirrorUrl
+                allowInsecureProtocol = mavenMirrorUrl.startsWith('http://')
+            }
+        }
+
+        // Google's Maven Central mirror for plugins
+        maven {
+            url 'https://maven-central-eu.storage-download.googleapis.com/maven2/'
+        }
+
+        // Gradle Plugin Portal
+        gradlePluginPortal()
+
+        // Fallback to standard Maven Central
+        mavenCentral()
+
+        // Local cache fallback
+        mavenLocal()
+    }
+}
+
 // Configure build cache
 buildCache {
     local {
