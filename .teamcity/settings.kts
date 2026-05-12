@@ -55,7 +55,12 @@ object SharedCiFoundation : Template({
         reports/** => reports.zip
         sbom/** => sbom.zip
         provenance/** => provenance.zip
+        .gradle/caches/** => gradle-cache.zip
     """.trimIndent()
+
+    params {
+        param("env.GRADLE_USER_HOME", "%teamcity.build.checkoutDir%/.gradle")
+    }
 
     features {
         commitStatusPublisher {
@@ -118,11 +123,19 @@ object UnitTests : BuildType({
     name = "01 Unit tests"
     templates(SharedCiFoundation)
 
+    dependencies {
+        artifacts(UnitTests) {
+            buildRule = lastSuccessful()
+            artifactRules = "gradle-cache.zip!** => .gradle/caches"
+            cleanDestination = false
+        }
+    }
+
     steps {
         gradle {
             name = "Run unit tests"
             tasks = "clean test"
-            gradleParams = "--no-daemon"
+            gradleParams = "--no-daemon --build-cache"
             useGradleWrapper = true
             gradleWrapperPath = "."
         }
