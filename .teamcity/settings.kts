@@ -246,6 +246,10 @@ object PolicyAsCode : BuildType({
     name = "07 Policy-as-code"
     templates(SharedCiFoundation)
 
+    requirements {
+        exists("teamcity.build.branch")
+    }
+
     steps {
         script {
             name = "Enforce executable engineering rules"
