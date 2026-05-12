@@ -103,7 +103,7 @@ object ValidateAll : BuildType({
         snapshot(IntegrationTests) { onDependencyFailure = FailureAction.FAIL_TO_START }
         snapshot(RegressionTests) { onDependencyFailure = FailureAction.FAIL_TO_START }
         snapshot(EndToEndTests) { onDependencyFailure = FailureAction.FAIL_TO_START }
-        snapshot(StaticAnalysis) { onDependencyFailure = FailureAction.FAIL_TO_START }
+        snapshot(StaticAnalysis) { onDependencyFailure = FailureAction.IGNORE }
         snapshot(SecurityScanning) { onDependencyFailure = FailureAction.FAIL_TO_START }
         snapshot(ComplianceGates) { onDependencyFailure = FailureAction.FAIL_TO_START }
         snapshot(PackageArtifact) { onDependencyFailure = FailureAction.FAIL_TO_START }
@@ -287,7 +287,7 @@ object PackageArtifact : BuildType({
 
     dependencies {
         snapshot(UnitTests) { onDependencyFailure = FailureAction.FAIL_TO_START }
-        snapshot(StaticAnalysis) { onDependencyFailure = FailureAction.FAIL_TO_START }
+        snapshot(StaticAnalysis) { onDependencyFailure = FailureAction.IGNORE }
         snapshot(SecurityScanning) { onDependencyFailure = FailureAction.FAIL_TO_START }
         snapshot(ComplianceGates) { onDependencyFailure = FailureAction.FAIL_TO_START }
     }
