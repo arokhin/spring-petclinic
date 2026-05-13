@@ -1,6 +1,7 @@
 import jetbrains.buildServer.configs.kotlin.*
 import jetbrains.buildServer.configs.kotlin.buildFeatures.approval
 import jetbrains.buildServer.configs.kotlin.buildFeatures.commitStatusPublisher
+import jetbrains.buildServer.configs.kotlin.buildSteps.gradle
 import jetbrains.buildServer.configs.kotlin.buildSteps.qodana
 import jetbrains.buildServer.configs.kotlin.buildSteps.script
 import jetbrains.buildServer.configs.kotlin.failureConditions.*
@@ -127,19 +128,12 @@ object UnitTests : BuildType({
     templates(SharedCiFoundation)
 
     steps {
-        script {
-            name = "Run unit tests with offline fallback"
-            scriptContent = """
-                # Try online first, fall back to offline if rate limited
-                if ! ./gradlew --no-daemon --build-cache clean test 2>&1 | tee test-output.log; then
-                  if grep -q "429" test-output.log; then
-                    echo "Hit rate limit, retrying in offline mode..."
-                    ./gradlew --no-daemon --build-cache --offline clean test
-                  else
-                    exit 1
-                  fi
-                fi
-            """.trimIndent()
+        gradle {
+            name = "Run unit tests"
+            tasks = "clean test"
+            gradleParams = "--no-daemon --build-cache --offline"
+            useGradleWrapper = true
+            gradleWrapperPath = "."
         }
     }
 })
