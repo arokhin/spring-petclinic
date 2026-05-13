@@ -206,6 +206,22 @@ object StaticAnalysis : BuildType({
     templates(SharedCiFoundation)
 
     steps {
+        script {
+            name = "Check Qodana Cloud availability"
+            scriptContent = """
+                echo "Checking connectivity to Qodana Cloud..."
+                if curl -s --connect-timeout 10 https://qodana.cloud > /dev/null; then
+                    echo "✓ Qodana Cloud (https://qodana.cloud) is accessible"
+                else
+                    echo "✗ WARNING: Cannot reach Qodana Cloud (https://qodana.cloud)"
+                    echo "This may cause Qodana analysis to fail"
+                fi
+
+                echo ""
+                echo "Checking API endpoint..."
+                curl -v --connect-timeout 10 https://api.qodana.cloud/v1/health 2>&1 | head -20 || true
+            """.trimIndent()
+        }
         qodana {
             name = "Run Qodana static analysis"
             linter = jvm()
