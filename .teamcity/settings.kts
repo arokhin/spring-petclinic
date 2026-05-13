@@ -131,7 +131,7 @@ object UnitTests : BuildType({
         gradle {
             name = "Run unit tests"
             tasks = "clean test"
-            gradleParams = "--no-daemon --build-cache --offline"
+            gradleParams = "--no-daemon --build-cache"
             useGradleWrapper = true
             gradleWrapperPath = "."
         }
