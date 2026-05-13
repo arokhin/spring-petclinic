@@ -9,14 +9,14 @@ pluginManagement {
                 allowInsecureProtocol = mavenMirrorUrl.startsWith('http://')
             }
         }
+        // Gradle Plugin Portal
+        gradlePluginPortal()
 
         // Google's Maven Central mirror for plugins
         maven {
             url 'https://maven-central-eu.storage-download.googleapis.com/maven2/'
         }
 
-        // Gradle Plugin Portal
-        gradlePluginPortal()
 
         // Fallback to standard Maven Central
         mavenCentral()
