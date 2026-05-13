@@ -3,6 +3,7 @@ import jetbrains.buildServer.configs.kotlin.buildFeatures.approval
 import jetbrains.buildServer.configs.kotlin.buildFeatures.commitStatusPublisher
 import jetbrains.buildServer.configs.kotlin.buildSteps.qodana
 import jetbrains.buildServer.configs.kotlin.buildSteps.script
+import jetbrains.buildServer.configs.kotlin.failureConditions.*
 import jetbrains.buildServer.configs.kotlin.triggers.vcs
 import jetbrains.buildServer.configs.kotlin.vcs.GitVcsRoot
 
@@ -229,18 +230,31 @@ object StaticAnalysis : BuildType({
         }
     }
 
-//    failureConditions {
-//        nonZeroExitCode = true
-//        failOnMetricChange {
-//            metric = BuildFailureOnMetric.MetricType.INSPECTION_WARN_COUNT
-//            threshold = 1
-//            units = BuildFailureOnMetric.MetricUnit.DEFAULT_UNIT
-//            comparison = BuildFailureOnMetric.MetricComparison.MORE
-//            compareTo = build {
-//                buildRule = lastSuccessful()
-//            }
-//        }
-//    }
+    failureConditions {
+        nonZeroExitCode = true
+
+        // Fail if there are any new critical or high severity issues
+        failOnMetricChange {
+            metric = BuildFailureOnMetric.MetricType.INSPECTION_ERROR_COUNT
+            threshold = 0
+            units = BuildFailureOnMetric.MetricUnit.DEFAULT_UNIT
+            comparison = BuildFailureOnMetric.MetricComparison.MORE
+            compareTo = build {
+                buildRule = lastSuccessful()
+            }
+        }
+
+        // Fail if warnings increase by more than 10
+        failOnMetricChange {
+            metric = BuildFailureOnMetric.MetricType.INSPECTION_WARN_COUNT
+            threshold = 10
+            units = BuildFailureOnMetric.MetricUnit.DEFAULT_UNIT
+            comparison = BuildFailureOnMetric.MetricComparison.MORE
+            compareTo = build {
+                buildRule = lastSuccessful()
+            }
+        }
+    }
 })
 
 object SecurityScanning : BuildType({
