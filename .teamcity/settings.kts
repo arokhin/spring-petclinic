@@ -65,16 +65,16 @@ object SharedCiFoundation : Template({
         param("env.GRADLE_BUILD_CACHE_DIR", "%teamcity.agent.work.dir%/../gradle-build-cache")
     }
 
-    features {
-        commitStatusPublisher {
-            publisher = github {
-                githubUrl = "https://api.github.com"
-                authType = personalToken {
-                    token = "%github.token%"
-                }
-            }
-        }
-    }
+//    features {
+//        commitStatusPublisher {
+//            publisher = github {
+//                githubUrl = "https://api.github.com"
+//                authType = personalToken {
+//                    token = "%github.token%"
+//                }
+//            }
+//        }
+//    }
 
     failureConditions {
         executionTimeoutMin = 45
