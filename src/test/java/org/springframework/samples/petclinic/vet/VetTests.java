@@ -16,6 +16,7 @@
 package org.springframework.samples.petclinic.vet;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.samples.petclinic.FlakyTestSupport;
 import org.springframework.util.SerializationUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -36,6 +37,7 @@ class VetTests {
 		assertThat(other.getFirstName()).isEqualTo(vet.getFirstName());
 		assertThat(other.getLastName()).isEqualTo(vet.getLastName());
 		assertThat(other.getId()).isEqualTo(vet.getId());
+		FlakyTestSupport.failRandomly("VetTests.testSerialization");
 	}
 
 }

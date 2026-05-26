@@ -55,6 +55,7 @@ dependencies {
 
 tasks.named('test') {
   useJUnitPlatform()
+  systemProperty 'petclinic.flaky.failurePercentage', System.getProperty('petclinic.flaky.failurePercentage', '35')
 }
 
 checkstyle {

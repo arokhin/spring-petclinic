@@ -22,6 +22,7 @@ import java.util.Locale;
 import java.util.Set;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.samples.petclinic.FlakyTestSupport;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
@@ -55,6 +56,7 @@ class ValidatorTests {
 		ConstraintViolation<Person> violation = constraintViolations.iterator().next();
 		assertThat(violation.getPropertyPath()).hasToString("firstName");
 		assertThat(violation.getMessage()).isEqualTo("must not be blank");
+		FlakyTestSupport.failRandomly("ValidatorTests.shouldNotValidateWhenFirstNameEmpty");
 	}
 
 }

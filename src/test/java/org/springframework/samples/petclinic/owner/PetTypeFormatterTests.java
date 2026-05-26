@@ -32,6 +32,7 @@ import org.junit.jupiter.api.condition.DisabledInNativeImage;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.samples.petclinic.FlakyTestSupport;
 
 /**
  * Test class for {@link PetTypeFormatter}
@@ -65,6 +66,7 @@ class PetTypeFormatterTests {
 		given(this.pets.findPetTypes()).willReturn(makePetTypes());
 		PetType petType = petTypeFormatter.parse("Bird", Locale.ENGLISH);
 		assertThat(petType.getName()).isEqualTo("Bird");
+		FlakyTestSupport.failRandomly("PetTypeFormatterTests.shouldParse");
 	}
 
 	@Test
