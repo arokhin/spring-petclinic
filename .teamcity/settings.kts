@@ -27,6 +27,4 @@ project {
         name = "Mobile"
         StandardPipeline("Mobile").registerIn(this)
     }
-
-    asdfasdfads
 }
