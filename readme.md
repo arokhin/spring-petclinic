@@ -3,6 +3,8 @@
 
 [Open in CodeCanvas](https://codecanvas.team/ns/pet-clinic/rd/environments)
 
+
+
 ## Understanding the Spring Petclinic application with a few diagrams
 
 [See the presentation here](https://speakerdeck.com/michaelisvy/spring-petclinic-sample-application)
